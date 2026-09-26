@@ -1,17 +1,19 @@
 import { ReactNode, useRef } from "react";
 import Draggable from "react-draggable";
 import { useLayoutStore } from "../store/layoutStore";
+import { AssetCategory, CATEGORY_COLORS } from "../store/configStore";
 
 interface WidgetProps {
   id: string;
   title: string;
+  category: AssetCategory;
   children: ReactNode;
   isEditMode?: boolean;
   onRemove?: () => void;
   defaultPosition?: { x: number, y: number };
 }
 
-export function Widget({ id, title, children, isEditMode, onRemove, defaultPosition = { x: 0, y: 0 } }: WidgetProps) {
+export function Widget({ id, title, category, children, isEditMode, onRemove, defaultPosition = { x: 0, y: 0 } }: WidgetProps) {
   const { positions, updatePosition } = useLayoutStore();
   const nodeRef = useRef(null); // required for Draggable in strict mode
 
@@ -21,6 +23,8 @@ export function Widget({ id, title, children, isEditMode, onRemove, defaultPosit
     updatePosition(id, { x: data.x, y: data.y });
   };
 
+  const borderColorClass = CATEGORY_COLORS[category] || 'border-white/10';
+
   return (
     <Draggable
       nodeRef={nodeRef}
@@ -29,7 +33,7 @@ export function Widget({ id, title, children, isEditMode, onRemove, defaultPosit
       onStop={handleDragStop}
       bounds="parent" // Keeps it inside the screen bounds
     >
-      <div ref={nodeRef} className="widget-glass flex flex-col absolute w-[340px] shadow-2xl border-white/10" style={{ zIndex: 10 }}>
+      <div ref={nodeRef} className={`widget-glass flex flex-col absolute w-[340px] shadow-2xl border-t-2 ${borderColorClass}`} style={{ zIndex: 10 }}>
         {/* Header - The Drag Handle */}
         <div className="drag-handle cursor-move flex items-center justify-between px-2 py-1 bg-black/60 border-b border-white/10">
           <h3 className="text-[13px] font-bold text-white/90 tracking-wide font-sans">{title}</h3>

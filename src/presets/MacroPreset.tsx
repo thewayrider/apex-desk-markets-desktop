@@ -87,6 +87,7 @@ export function MacroPreset({ isEditMode }: MacroPresetProps) {
           key={widgetConfig.id}
           id={widgetConfig.id}
           title={widgetConfig.title} 
+          category={widgetConfig.category}
           isEditMode={isEditMode} 
           defaultPosition={widgetConfig.defaultPosition}
           onRemove={() => removeWidget(widgetConfig.id)}
