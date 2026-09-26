@@ -1,18 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useConfigStore, AssetCategory } from '../store/configStore';
-import { useMarketStore } from '../store/marketStore';
 
 interface WidgetCreatorProps {
   onClose: () => void;
   position: { x: number; y: number };
+  editWidgetId?: string;
 }
 
-export function WidgetCreator({ onClose, position }: WidgetCreatorProps) {
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<AssetCategory>('Stocks');
-  const [tickersInput, setTickersInput] = useState('');
-  const { addWidget } = useConfigStore();
+export function WidgetCreator({ onClose, position, editWidgetId }: WidgetCreatorProps) {
+  const { widgets, addWidget, updateWidget } = useConfigStore();
+  
+  // Find widget if editing
+  const existingWidget = editWidgetId ? widgets.find(w => w.id === editWidgetId) : undefined;
 
+  const [title, setTitle] = useState(existingWidget?.title || '');
+  const [category, setCategory] = useState<AssetCategory>(existingWidget?.category || 'Stocks');
+  const [tickersInput, setTickersInput] = useState(existingWidget?.tickers.join(', ') || '');
+  
   const categories: AssetCategory[] = ['Stocks', 'Funds', 'Futures', 'Forex', 'Crypto', 'Indices', 'Bonds', 'Economy', 'Options'];
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -21,34 +25,36 @@ export function WidgetCreator({ onClose, position }: WidgetCreatorProps) {
     if (!title.trim() || !tickersInput.trim()) return;
 
     const tickers = tickersInput.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
-
-    // Provide some mock data immediately for the newly created tickers
-    const mockUpdates = tickers.map(tickerId => ({
-      id: tickerId,
-      label: tickerId.toUpperCase(),
-      price: Number((Math.random() * 1000).toFixed(2)),
-      change: Number(((Math.random() - 0.5) * 10).toFixed(2)),
-      isPositive: Math.random() > 0.5,
-      lastUpdated: Date.now()
-    }));
-    useMarketStore.getState().initializeData(mockUpdates);
     
-    // Create new widget
-    addWidget({
-      id: `widget-${Date.now()}`,
-      title: title.trim(),
-      category,
-      defaultPosition: position, // Spawn it where the user right-clicked
-      tickers
-    });
+    if (existingWidget) {
+      // Update existing
+      updateWidget(existingWidget.id, {
+        title: title.trim(),
+        category,
+        tickers
+      });
+    } else {
+      // Create new
+      addWidget({
+        id: `widget-${Date.now()}`,
+        title: title.trim(),
+        category,
+        defaultPosition: position, // Spawn it where the user right-clicked
+        tickers
+      });
+    }
 
     onClose();
   };
 
+  const isEditing = !!existingWidget;
+
   return (
     <div className="absolute z-50 widget-glass shadow-2xl border border-white/20 p-4 w-[360px]" style={{ left: position.x, top: position.y }}>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-sm font-bold text-white tracking-wide">Customize Widget</h2>
+        <h2 className="text-sm font-bold text-white tracking-wide">
+          {isEditing ? 'Edit Widget' : 'Create New Widget'}
+        </h2>
         <button onClick={onClose} className="text-white/50 hover:text-white">&times;</button>
       </div>
 
@@ -95,7 +101,7 @@ export function WidgetCreator({ onClose, position }: WidgetCreatorProps) {
             ${title && tickersInput ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white/5 text-white/30 cursor-not-allowed'}`}
           disabled={!title || !tickersInput}
         >
-          Create Widget
+          {isEditing ? 'Save Changes' : 'Create Widget'}
         </button>
       </form>
     </div>

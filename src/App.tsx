@@ -5,17 +5,29 @@ import "./App.css";
 
 function App() {
   const [isEditMode, setIsEditMode] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
-  const [creatorPosition, setCreatorPosition] = useState<{ x: number; y: number } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; targetWidgetId?: string } | null>(null);
+  const [creatorState, setCreatorState] = useState<{ x: number; y: number; editWidgetId?: string } | null>(null);
 
   const handleContextMenu = (e: MouseEvent) => {
     e.preventDefault(); // Prevent standard Windows context menu
-    setContextMenu({ x: e.clientX, y: e.clientY });
+    
+    // Check if we right-clicked on a widget
+    const widgetEl = (e.target as HTMLElement).closest('[data-widget-id]');
+    const targetWidgetId = widgetEl ? widgetEl.getAttribute('data-widget-id') || undefined : undefined;
+    
+    setContextMenu({ x: e.clientX, y: e.clientY, targetWidgetId });
   };
 
   const handleCreateNew = () => {
     if (contextMenu) {
-      setCreatorPosition(contextMenu);
+      setCreatorState({ x: contextMenu.x, y: contextMenu.y });
+      setContextMenu(null);
+    }
+  };
+
+  const handleEditWidget = () => {
+    if (contextMenu && contextMenu.targetWidgetId) {
+      setCreatorState({ x: contextMenu.x, y: contextMenu.y, editWidgetId: contextMenu.targetWidgetId });
       setContextMenu(null);
     }
   };
@@ -39,7 +51,7 @@ function App() {
             onClick={() => {
               setIsEditMode(!isEditMode);
               setContextMenu(null);
-              setCreatorPosition(null);
+              setCreatorState(null);
             }}
             className={`
               px-4 py-1.5 rounded-full text-sm font-medium transition-all shadow-sm
@@ -61,11 +73,19 @@ function App() {
       {/* Context Menu */}
       {contextMenu && (
         <div 
-          className="absolute z-50 bg-black/80 backdrop-blur-md border border-white/10 rounded overflow-hidden shadow-2xl flex flex-col w-[160px]"
+          className="absolute z-50 bg-black/80 backdrop-blur-md border border-white/10 rounded overflow-hidden shadow-2xl flex flex-col min-w-[180px] whitespace-nowrap"
           style={{ left: contextMenu.x, top: contextMenu.y }}
         >
+          {contextMenu.targetWidgetId && (
+            <button 
+              className="px-4 py-2 text-left text-sm text-white/90 hover:bg-white/10 transition-colors cursor-pointer border-b border-white/5"
+              onClick={handleEditWidget}
+            >
+              Edit Widget
+            </button>
+          )}
           <button 
-            className="px-4 py-2 text-left text-sm text-white/90 hover:bg-white/10 transition-colors cursor-pointer border-b border-white/5"
+            className="px-4 py-2 text-left text-sm text-white/90 hover:bg-white/10 transition-colors cursor-pointer"
             onClick={handleCreateNew}
           >
             + Create New Widget
@@ -73,11 +93,12 @@ function App() {
         </div>
       )}
 
-      {/* Widget Creator Modal */}
-      {creatorPosition && (
+      {/* Widget Creator/Editor Modal */}
+      {creatorState && (
         <WidgetCreator 
-          position={creatorPosition} 
-          onClose={() => setCreatorPosition(null)} 
+          position={creatorState}
+          editWidgetId={creatorState.editWidgetId}
+          onClose={() => setCreatorState(null)} 
         />
       )}
       

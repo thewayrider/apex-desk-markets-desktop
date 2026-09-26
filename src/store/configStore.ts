@@ -27,6 +27,7 @@ interface ConfigState {
   widgets: WidgetConfig[];
   addWidget: (widget: WidgetConfig) => void;
   removeWidget: (id: string) => void;
+  updateWidget: (id: string, updates: Partial<WidgetConfig>) => void;
   updateWidgetTickers: (id: string, tickers: string[]) => void;
 }
 
@@ -80,6 +81,12 @@ export const useConfigStore = create<ConfigState>()(
       
       removeWidget: (id) => set((state) => ({
         widgets: state.widgets.filter(w => w.id !== id)
+      })),
+      
+      updateWidget: (id, updates) => set((state) => ({
+        widgets: state.widgets.map(w => 
+          w.id === id ? { ...w, ...updates } : w
+        )
       })),
       
       updateWidgetTickers: (id, tickers) => set((state) => ({

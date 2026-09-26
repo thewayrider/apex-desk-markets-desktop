@@ -33,7 +33,7 @@ export function Widget({ id, title, category, children, isEditMode, onRemove, de
       onStop={handleDragStop}
       bounds="parent" // Keeps it inside the screen bounds
     >
-      <div ref={nodeRef} className={`widget-glass flex flex-col absolute w-[340px] shadow-2xl border-t-2 ${borderColorClass}`} style={{ zIndex: 10 }}>
+      <div ref={nodeRef} data-widget-id={id} className={`widget-glass flex flex-col absolute w-[340px] shadow-2xl border-t-2 ${borderColorClass}`} style={{ zIndex: 10 }}>
         {/* Header - The Drag Handle */}
         <div className="drag-handle cursor-move flex items-center justify-between px-2 py-1 bg-black/60 border-b border-white/10">
           <h3 className="text-[13px] font-bold text-white/90 tracking-wide font-sans">{title}</h3>
