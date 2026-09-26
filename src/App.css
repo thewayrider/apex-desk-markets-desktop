@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Avenir", Helvetica, Arial, sans-serif;
+}
+
+@layer base {
+  body {
+    /* No solid background, allow transparency for desktop widget */
+    background-color: transparent;
+    color: #e2e8f0;
+    overflow: hidden; /* Prevent scrollbars on desktop widget */
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@layer components {
+  .widget-glass {
+    @apply bg-black/40 backdrop-blur-md border border-white/10 shadow-lg rounded-xl overflow-hidden;
+  }
+  
+  .text-positive {
+    @apply text-emerald-400;
+  }
+  
+  .text-negative {
+    @apply text-rose-500;
+  }
+
+  .flash-positive {
+    animation: flashGreen 0.3s ease-out forwards;
+  }
+  
+  .flash-negative {
+    animation: flashRed 0.3s ease-out forwards;
+  }
+}
+
+@keyframes flashGreen {
+  0% { background-color: rgba(52, 211, 153, 0.2); }
+  100% { background-color: transparent; }
+}
+
+@keyframes flashRed {
+  0% { background-color: rgba(244, 63, 94, 0.2); }
+  100% { background-color: transparent; }
+}
