@@ -2,11 +2,13 @@ import { useEffect, useRef } from "react";
 import { Widget } from "../components/Widget";
 import { MarketRow } from "../components/MarketRow";
 import { MockDataService } from "../services/MockDataService";
+import { useConfigStore } from "../store/configStore";
 
 interface MacroPresetProps {
   isEditMode: boolean;
 }
 
+// We expand the mock data to include the new European Tech Stocks
 const INITIAL_MARKET_DATA = [
   // Yields
   { id: "us30y", label: "US Treasury 30Y", price: 4.521, change: 0.04, isPositive: true, lastUpdated: 0 },
@@ -35,10 +37,20 @@ const INITIAL_MARKET_DATA = [
   { id: "gbpusd", label: "GBP / USD", price: 1.2637, change: -0.0025, isPositive: false, lastUpdated: 0 },
   { id: "audusd", label: "AUD / USD", price: 0.6521, change: 0.0011, isPositive: true, lastUpdated: 0 },
   { id: "usdchf", label: "USD / CHF", price: 0.9012, change: 0.0040, isPositive: true, lastUpdated: 0 },
+  
+  // European Tech Stocks (New)
+  { id: "asml", label: "ASML Holding", price: 872.40, change: 12.50, isPositive: true, lastUpdated: 0 },
+  { id: "sap", label: "SAP SE", price: 174.20, change: -1.20, isPositive: false, lastUpdated: 0 },
+  { id: "infy", label: "Infineon Tech", price: 34.80, change: 0.45, isPositive: true, lastUpdated: 0 },
+  { id: "stm", label: "STMicroelectronics", price: 39.55, change: -0.15, isPositive: false, lastUpdated: 0 },
+  { id: "lseg", label: "LSEG PLC", price: 9240.00, change: 45.00, isPositive: true, lastUpdated: 0 }
 ];
 
 export function MacroPreset({ isEditMode }: MacroPresetProps) {
   const serviceRef = useRef<MockDataService | null>(null);
+  
+  // Subscribe to the configuration store
+  const { widgets, removeWidget } = useConfigStore();
 
   useEffect(() => {
     // Start WebSocket simulator when dashboard mounts
@@ -70,67 +82,21 @@ export function MacroPreset({ isEditMode }: MacroPresetProps) {
 
   return (
     <div className="w-full h-full relative">
-      
-      {/* Widget 1: Yield Spreads */}
-      <Widget 
-        id="widget-yields"
-        title="Sovereign Yields (30Y)" 
-        isEditMode={isEditMode} 
-        defaultPosition={{ x: 20, y: 20 }}
-      >
-        <ListHeader />
-        <MarketRow id="us30y" />
-        <MarketRow id="jp30y" />
-        <MarketRow id="uk30y" />
-        <MarketRow id="ge30y" />
-        <MarketRow id="it30y" />
-      </Widget>
-
-      {/* Widget 2: Energy & Commodities */}
-      <Widget 
-        id="widget-energy"
-        title="Energy / Commods" 
-        isEditMode={isEditMode} 
-        defaultPosition={{ x: 20, y: 200 }}
-      >
-        <ListHeader />
-        <MarketRow id="brent" />
-        <MarketRow id="wti" />
-        <MarketRow id="natgas" />
-        <MarketRow id="gold" />
-        <MarketRow id="copper" />
-      </Widget>
-
-      {/* Widget 3: Key Indices */}
-      <Widget 
-        id="widget-indices"
-        title="Global Indices" 
-        isEditMode={isEditMode} 
-        defaultPosition={{ x: 400, y: 20 }}
-      >
-        <ListHeader />
-        <MarketRow id="sp500" />
-        <MarketRow id="ndx" />
-        <MarketRow id="n225" />
-        <MarketRow id="ftse" />
-        <MarketRow id="vix" />
-      </Widget>
-
-      {/* Widget 4: Currencies */}
-      <Widget 
-        id="widget-fx"
-        title="FX Majors" 
-        isEditMode={isEditMode} 
-        defaultPosition={{ x: 400, y: 200 }}
-      >
-        <ListHeader />
-        <MarketRow id="usdjpy" />
-        <MarketRow id="eurusd" />
-        <MarketRow id="gbpusd" />
-        <MarketRow id="audusd" />
-        <MarketRow id="usdchf" />
-      </Widget>
-      
+      {widgets.map((widgetConfig) => (
+        <Widget 
+          key={widgetConfig.id}
+          id={widgetConfig.id}
+          title={widgetConfig.title} 
+          isEditMode={isEditMode} 
+          defaultPosition={widgetConfig.defaultPosition}
+          onRemove={() => removeWidget(widgetConfig.id)}
+        >
+          <ListHeader />
+          {widgetConfig.tickers.map(tickerId => (
+             <MarketRow key={tickerId} id={tickerId} />
+          ))}
+        </Widget>
+      ))}
     </div>
   );
 }
